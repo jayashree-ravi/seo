@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developing an SEO Strategy Using Context and Keyword Mix</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   DESIGN TOKENS
+   ========================================================== */
+:root {
+  --navy:      #00243A;
+  --navy-mid:  #004162;
+  --teal:      #51BFFC;
+  --slate:     #5C6A76;
+  --silver:    #B5C6D8;
+  --white:     #FFFFFF;
+  --gold-dark: #9E6B05;
+  --gold:      #CE8C00;
+  --gold-mid:  #F9C654;
+  --burgundy:  #771E30;
+  --rose:      #BF3F4F;
+  --green-ok:  #27AE60;
+  --font:      "Montserrat", sans-serif;
+  --cursive:   "Playfair Display", serif;
+  --nav-h:     52px;   /* fixed pixel height — reliable across all vw */
+}
+
+/* ==========================================================
+   RESET & BASE
+   ========================================================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font);
+  background: #06111a;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; overflow: hidden;
+}
+button { font-family: var(--font); cursor: pointer; }
+svg { display: block; }
+
+/* ==========================================================
+   16:9 STAGE
+   ========================================================== */
+.stage { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+.wrapper {
+  position: relative;
+  width: 100vw; height: 56.25vw;
+  max-height: 100vh; max-width: 177.78vh;
+  overflow: hidden; background: var(--white);
+}
+
+/* ==========================================================
+   SLIDES
+   ========================================================== */
+.slide { position: absolute; inset: 0; display: none; flex-direction: column; }
+.slide.active { display: flex; }
+
+/* ==========================================================
+   NAV BAR
+   Fixed pixel height. Transparent on dark slides so bg shows.
+   Content areas padded below to never overlap.
+   ========================================================== */
+.nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 0 2.5%; z-index: 200; gap: 10px;
+  background: rgba(255,255,255,0.96);
+  border-top: 1px solid rgba(181,198,216,0.35);
+}
+.nav.dark {
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.nbtn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 20px; border: none; border-radius: 4px;
+  font-family: var(--font); font-size: clamp(11px,1.05vw,13px);
+  font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+.nbtn svg { width: 12px; height: 12px; }
+.nbtn-prev { background: transparent; color: var(--navy); border: 1.5px solid #8fa8be; }
+.nbtn-prev:hover { background: #eef4fa; }
+.nav.dark .nbtn-prev { color: #fff; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); }
+.nav.dark .nbtn-prev:hover { background: rgba(255,255,255,0.18); }
+.nbtn-next { background: var(--navy); color: #fff; }
+.nbtn-next:hover { background: var(--navy-mid); }
+.nbtn-next:disabled { background: var(--silver); color: #7a9ab0; cursor: not-allowed; }
+.nav.dark .nbtn-next { background: var(--gold); color: var(--navy); }
+.nav.dark .nbtn-next:hover { background: var(--gold-mid); }
+.nav.dark .nbtn-next:disabled { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.35); cursor: not-allowed; }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* ==========================================================
+   SHARED UTILITIES
+   ========================================================== */
+.strip { height: 4px; background: linear-gradient(90deg,var(--teal),var(--navy-mid)); flex-shrink: 0; }
+.eyebrow { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); margin-bottom: 4px; }
+.h2 { font-size: clamp(22px,2.8vw,40px); font-weight: 800; color: var(--navy); line-height: 1.1; }
+
+/* safe content area — stops content going behind nav */
+.safe { padding-bottom: var(--nav-h); }
+
+/* ==========================================================
+   SLIDE 1 — COVER
+   ========================================================== */
+#s-cover { background: var(--navy); overflow: hidden; }
+.cover-grid { position: absolute; inset: 0; display: grid; grid-template-columns: 56% 44%; }
+.cover-left {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8% 6% calc(var(--nav-h) + 20px) 8%;
+}
+.cover-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(81,191,252,0.12); border: 1px solid rgba(81,191,252,0.28);
+  border-radius: 3px; padding: 4px 10px; color: var(--teal);
+  font-size: clamp(9px,0.8vw,11px); font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 5%; align-self: flex-start;
+}
+.cover-tag svg { width: 9px; height: 9px; stroke: var(--teal); }
+.cover-h1 { font-size: clamp(26px,4vw,56px); font-weight: 900; color: #fff; line-height: 1.08; margin-bottom: 5%; }
+.cover-h1 em { color: var(--gold-mid); font-style: normal; display: block; }
+.cover-bar { width: 48px; height: 3px; background: linear-gradient(90deg,var(--teal),var(--gold)); border-radius: 2px; margin-bottom: 7%; }
+.btn-begin {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; background: var(--gold); color: var(--navy);
+  border: none; border-radius: 4px;
+  font-size: clamp(12px,1.1vw,14px); font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  transition: all 0.15s ease; align-self: flex-start;
+}
+.btn-begin:hover { background: var(--gold-mid); transform: translateY(-2px); }
+.btn-begin svg { width: 12px; height: 12px; }
+.cover-right { position: relative; overflow: hidden; }
+.cover-shape1 { position: absolute; right: -8%; top: -15%; width: 110%; height: 130%; background: var(--navy-mid); clip-path: polygon(18% 0%,100% 0%,100% 100%,0% 100%); }
+.cover-shape2 { position: absolute; right: 0; top: 0; width: 75%; height: 100%; background: linear-gradient(150deg,rgba(81,191,252,0.09) 0%,transparent 65%); clip-path: polygon(30% 0%,100% 0%,100% 100%,5% 100%); }
+.cover-dots { position: absolute; inset: 5% 3%; background-image: radial-gradient(circle,rgba(81,191,252,0.18) 1px,transparent 1px); background-size: 4.5% 6%; }
+.cover-deco { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6%; padding: 8% 10%; }
+.cover-ring { position: relative; width: clamp(100px,16vw,200px); height: clamp(100px,16vw,200px); display: flex; align-items: center; justify-content: center; }
+.cover-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 22s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.cover-ring-icon { position: relative; z-index: 2; width: 32%; }
+.cover-ring-icon svg { width: 100%; height: 100%; }
+.cover-line { width: 65%; height: 1px; background: linear-gradient(90deg,transparent,rgba(81,191,252,0.28),transparent); }
+
+/* ==========================================================
+   SLIDE 2 — LEARNING OBJECTIVES
+   ========================================================== */
+#s-los { background: #fff; }
+.los-grid { flex: 1; display: grid; grid-template-columns: 38% 62%; padding-bottom: var(--nav-h); }
+.los-left { background: var(--navy); padding: 7% 6%; display: flex; flex-direction: column; justify-content: center; gap: 5%; position: relative; overflow: hidden; }
+.los-left-circle { position: absolute; bottom: -8%; right: -10%; width: 55%; height: 50%; background: rgba(255,255,255,0.03); border-radius: 50%; }
+.los-left-ey { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); }
+.los-left-h { font-size: clamp(22px,2.8vw,40px); font-weight: 900; color: #fff; line-height: 1.1; }
+.los-left-p { font-size: clamp(13px,1.3vw,18px); color: var(--silver); line-height: 1.65; }
+.los-right { padding: 6% 6% 4%; display: flex; flex-direction: column; justify-content: center; gap: 4%; }
+.los-right-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); }
+.lo-card { display: flex; gap: 16px; align-items: flex-start; padding: 5% 5%; background: #f0f6fc; border-radius: 8px; border-left: 4px solid var(--teal); }
+.lo-n { font-size: clamp(30px,3.8vw,52px); font-weight: 900; color: var(--silver); line-height: 1; flex-shrink: 0; margin-top: -3px; }
+.lo-body strong { display: block; font-size: clamp(13px,1.3vw,17px); font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.lo-body p { font-size: clamp(12px,1.2vw,16px); color: var(--slate); line-height: 1.55; }
+
+/* ==========================================================
+   SLIDE 3 — NAME
+   ========================================================== */
+#s-name { background: #fff; }
+.name-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding-bottom: var(--nav-h); }
+.name-card { width: 50%; display: flex; flex-direction: column; align-items: center; gap: 5%; text-align: center; }
+.name-icon { width: clamp(50px,5.5vw,70px); height: clamp(50px,5.5vw,70px); border-radius: 50%; background: #f0f7ff; border: 2px solid var(--silver); display: flex; align-items: center; justify-content: center; }
+.name-icon svg { width: 42%; height: 42%; stroke: var(--navy-mid); }
+.name-h { font-size: clamp(20px,2.5vw,36px); font-weight: 800; color: var(--navy); }
+.name-p { font-size: clamp(13px,1.3vw,17px); color: var(--slate); line-height: 1.6; }
+.name-field { width: 100%; }
+.name-field label { display: block; font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
+.name-input { width: 100%; padding: 10px 12px; font-family: var(--font); font-size: clamp(14px,1.5vw,20px); font-weight: 600; color: var(--navy); background: transparent; border: none; border-bottom: 2.5px solid var(--silver); text-align: center; outline: none; transition: border-color 0.2s; }
+.name-input:focus { border-color: var(--teal); }
+.name-input::placeholder { color: var(--silver); font-weight: 400; }
+
+/* ==========================================================
+   DIVIDER SLIDES
+   ========================================================== */
+.divider { position: absolute; inset: 0; display: none; flex-direction: column; overflow: hidden; }
+.divider.active { display: flex; }
+#s-rdiv { background: var(--navy-mid); }
+#s-adiv { background: var(--burgundy); }
+.div-accent { position: absolute; top: 0; left: 0; width: 6px; height: 100%; }
+#s-rdiv .div-accent { background: var(--teal); }
+#s-adiv .div-accent { background: var(--gold-mid); }
+.div-geo1 { position: absolute; right: -5%; top: -20%; width: 52%; height: 140%; background: rgba(255,255,255,0.035); clip-path: polygon(28% 0%,100% 0%,100% 100%,0% 100%); }
+.div-geo2 { position: absolute; right: 4%; width: 36%; height: 100%; background: rgba(255,255,255,0.022); clip-path: polygon(42% 0%,100% 0%,100% 100%,8% 100%); }
+.div-body { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; height: 100%; padding: 8% 10% calc(var(--nav-h) + 30px); gap: 2%; }
+.div-h { font-size: clamp(34px,5.5vw,74px); font-weight: 900; color: #fff; line-height: 1.08; max-width: 65%; }
+.div-p { font-size: clamp(13px,1.3vw,18px); color: rgba(255,255,255,0.65); max-width: 55%; line-height: 1.6; margin-top: 1%; }
+
+/* ==========================================================
+   SLIDE 5 — RECAP ACCORDION
+   The key: use a fixed pixel height for the wrapper so
+   percentage heights on children work reliably.
+   ========================================================== */
+#s-recap { background: #f0f5fb; }
+.recap-outer {
+  flex: 1;
+  display: flex; flex-direction: column;
+  /* Reserve nav height so nothing overlaps */
+  padding-bottom: var(--nav-h);
+  overflow: hidden;
+  min-height: 0;
+}
+.recap-head { padding: 3% 5% 0; flex-shrink: 0; }
+.recap-prog { display: flex; align-items: center; gap: 8px; padding: 1.5% 5% 0; flex-shrink: 0; }
+.prog-dots { display: flex; gap: 5px; }
+.prog-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--silver); transition: background 0.25s; }
+.prog-dot.done { background: var(--teal); }
+.prog-txt { font-size: clamp(12px,1.2vw,15px); color: var(--slate); font-weight: 500; }
+
+/* The list fills remaining space */
+.acc-list {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 1.5% 5% 0;
+  gap: 8px; overflow: hidden;
+}
+
+/* Each item: closed = fixed height; open = flex:1 to fill remaining */
+.acc-item {
+  border-radius: 6px; overflow: hidden;
+  border: 1.5px solid var(--silver);
+  background: #fff;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+  /* closed height — enough for the header button */
+  min-height: 0;
+}
+.acc-item.visited:not(.open) { border-color: var(--teal); background: #f0f9ff; }
+.acc-item.open { flex: 1; border-color: transparent; overflow: hidden; display: flex; flex-direction: column; }
+
+.acc-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 3% 3%; background: none; border: none;
+  font-size: clamp(14px,1.4vw,18px); font-weight: 700; color: var(--navy);
+  text-align: left; transition: background 0.15s; flex-shrink: 0;
+}
+.acc-btn:hover { background: #eef5fb; }
+.acc-item.open .acc-btn { background: var(--navy); color: #fff; padding: 2.5% 3%; }
+.acc-item.visited:not(.open) .acc-btn { background: rgba(81,191,252,0.06); }
+.acc-btn-icon { width: clamp(16px,1.6vw,20px); height: clamp(16px,1.6vw,20px); flex-shrink: 0; }
+.acc-btn-icon svg { width: 100%; height: 100%; }
+.acc-item.open .acc-btn-icon svg { stroke: var(--teal); }
+.acc-item:not(.open) .acc-btn-icon svg { stroke: var(--navy-mid); }
+.acc-item.visited:not(.open) .acc-btn-icon svg { stroke: var(--teal); }
+.acc-reviewed { margin-left: auto; display: none; align-items: center; gap: 4px; font-size: clamp(10px,0.95vw,12px); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
+.acc-reviewed svg { width: 13px; height: 13px; stroke: var(--teal); stroke-width: 2.5; }
+.acc-item.visited:not(.open) .acc-reviewed { display: flex; }
+.acc-chev { margin-left: auto; width: 14px; height: 14px; flex-shrink: 0; transition: transform 0.2s; }
+.acc-item.open .acc-chev { transform: rotate(180deg); }
+.acc-item.open .acc-chev svg { stroke: rgba(255,255,255,0.5); }
+.acc-item:not(.open) .acc-chev svg { stroke: var(--slate); }
+.acc-item.visited:not(.open) .acc-chev { display: none; }
+
+/* The body panel: hidden by default; visible when .open */
+.acc-panel {
+  display: none;
+  background: var(--navy);
+  flex: 1; min-height: 0;
+  flex-direction: column;
+  padding: 2% 3% 2.5%;
+  gap: 2%;
+  overflow: hidden;
+}
+.acc-item.open .acc-panel { display: flex; }
+
+.acc-intro { font-size: clamp(12px,1.2vw,16px); color: rgba(255,255,255,0.65); line-height: 1.55; padding-bottom: 1.5%; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+.acc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2% 2.5%; flex: 1; min-height: 0; overflow: hidden; }
+.acc-pt { background: rgba(255,255,255,0.05); border-radius: 6px; border-left: 3px solid var(--teal); padding: 3% 3%; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+.acc-pt-title { font-size: clamp(11px,1.1vw,14px); font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; }
+.acc-pt-title svg { width: clamp(12px,1.2vw,15px); height: clamp(12px,1.2vw,15px); stroke: var(--teal); flex-shrink: 0; }
+.acc-bullets { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.acc-bullets li { font-size: clamp(10px,1vw,13px); color: rgba(255,255,255,0.6); line-height: 1.45; padding-left: 12px; position: relative; }
+.acc-bullets li::before { content: ""; position: absolute; left: 0; top: 0.52em; width: 4px; height: 4px; border-radius: 50%; background: var(--teal); }
+
+/* ==========================================================
+   SLIDE 7 — INSTRUCTIONS
+   ========================================================== */
+#s-instr { background: #fff; }
+.instr-grid { flex: 1; display: grid; grid-template-columns: 40% 60%; padding-bottom: var(--nav-h); }
+.instr-left { background: var(--navy); padding: 6% 6%; display: flex; flex-direction: column; justify-content: center; gap: 5%; position: relative; overflow: hidden; }
+.instr-left-circle { position: absolute; bottom: -10%; right: -12%; width: 55%; height: 55%; background: rgba(255,255,255,0.03); border-radius: 50%; }
+.instr-ey { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); }
+.instr-h { font-size: clamp(20px,2.5vw,36px); font-weight: 800; color: #fff; line-height: 1.15; }
+.instr-p { font-size: clamp(13px,1.25vw,17px); color: var(--silver); line-height: 1.6; }
+.score-badge { display: flex; align-items: center; gap: 6px; background: rgba(81,191,252,0.12); border: 1px solid rgba(81,191,252,0.28); border-radius: 5px; padding: 8px 12px; color: var(--teal); font-size: clamp(12px,1.1vw,14px); font-weight: 600; }
+.score-badge svg { width: 14px; height: 14px; stroke: var(--teal); flex-shrink: 0; }
+.instr-right { padding: 5% 6% 3%; display: flex; flex-direction: column; justify-content: center; gap: 2%; overflow: hidden; }
+.instr-right-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 1%; }
+.instr-list { list-style: none; display: flex; flex-direction: column; gap: 2%; }
+.instr-list li { display: flex; gap: 10px; align-items: flex-start; padding: 2.2% 3%; background: #f0f5fb; border-radius: 5px; }
+.instr-n { width: clamp(20px,1.9vw,24px); height: clamp(20px,1.9vw,24px); background: var(--navy); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(9px,0.85vw,11px); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.instr-list li span { font-size: clamp(13px,1.25vw,16px); color: var(--navy); font-weight: 500; line-height: 1.5; }
+
+/* ==========================================================
+   SLIDE 8 — SCENARIO
+   ========================================================== */
+#s-scen { background: #fff; }
+.scen-grid { flex: 1; display: grid; grid-template-columns: 34% 66%; padding-bottom: var(--nav-h); }
+.scen-left { background: var(--navy); padding: 5% 5%; display: flex; flex-direction: column; justify-content: center; gap: 5%; position: relative; overflow: hidden; min-height: 100%; }
+.scen-left-circle { position: absolute; bottom: -12%; left: -15%; width: 80%; height: 55%; border: 2px solid rgba(81,191,252,0.08); border-radius: 50%; }
+.scen-role { display: inline-flex; align-items: center; gap: 5px; background: rgba(249,198,84,0.12); border: 1px solid rgba(249,198,84,0.3); border-radius: 3px; padding: 4px 8px; color: var(--gold-mid); font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; align-self: flex-start; }
+.scen-role svg { width: 10px; height: 10px; stroke: var(--gold-mid); }
+.scen-h { font-size: clamp(17px,2vw,28px); font-weight: 800; color: #fff; line-height: 1.2; }
+.scen-h span { color: var(--teal); display: block; }
+.scen-co { display: flex; align-items: center; gap: 5px; font-size: clamp(11px,1.1vw,14px); color: var(--silver); font-weight: 500; }
+.scen-co svg { width: 11px; height: 11px; stroke: var(--teal); }
+.scen-right { padding: 4% 5%; display: flex; flex-direction: column; justify-content: center; gap: 3%; overflow-y: auto; }
+.scen-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); }
+.scen-p { font-size: clamp(14px,1.4vw,19px); color: var(--navy); line-height: 1.65; }
+.scen-task { background: #f0f5fb; border: 1.5px solid var(--silver); border-left: 4px solid var(--gold); border-radius: 6px; padding: 3.5% 4%; }
+.scen-task-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 8px; }
+.scen-task-p { font-size: clamp(13px,1.25vw,17px); color: var(--navy); font-weight: 500; line-height: 1.6; }
+
+/* ==========================================================
+   QUESTION SLIDES
+   ========================================================== */
+.q-slide { background: #f0f5fb; }
+.q-bar { background: var(--navy); height: 10%; display: flex; align-items: center; justify-content: space-between; padding: 0 5%; flex-shrink: 0; }
+.q-chip { background: var(--teal); color: var(--navy); font-size: clamp(9px,0.85vw,11px); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; }
+.q-scen { font-size: clamp(11px,1.05vw,13px); color: var(--silver); font-weight: 500; }
+.q-score { display: flex; align-items: center; gap: 4px; font-size: clamp(11px,1.05vw,13px); color: var(--silver); font-weight: 600; }
+.q-score svg { width: 13px; height: 13px; stroke: var(--gold-mid); }
+.q-body { flex: 1; display: grid; grid-template-columns: 44% 56%; padding-bottom: var(--nav-h); overflow: hidden; }
+.q-left { padding: 3.5% 4%; display: flex; flex-direction: column; gap: 3%; border-right: 1.5px solid var(--silver); background: #fff; overflow: hidden; }
+.q-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); }
+.q-q { font-size: clamp(14px,1.45vw,19px); font-weight: 700; color: var(--navy); line-height: 1.4; }
+.q-ctx { background: #f0f5fb; border-radius: 6px; border-left: 3px solid var(--silver); padding: 4%; font-size: clamp(12px,1.15vw,15px); color: var(--slate); font-style: italic; line-height: 1.6; flex-shrink: 0; }
+.q-ctx-lbl { font-size: clamp(9px,0.8vw,11px); font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin-bottom: 6px; font-style: normal; }
+.q-right { padding: 3.5% 4.5%; display: flex; flex-direction: column; justify-content: center; gap: 2%; overflow: hidden; }
+.q-opts-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+.opt { width: 100%; text-align: left; padding: 2.8% 3.5%; border: 1.5px solid var(--silver); border-radius: 6px; background: #fff; font-family: var(--font); font-size: clamp(12px,1.15vw,15px); font-weight: 500; color: var(--navy); transition: all 0.15s; display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; }
+.opt:hover:not(:disabled) { border-color: var(--teal); background: rgba(81,191,252,0.04); }
+.opt-l { width: clamp(20px,1.9vw,24px); height: clamp(20px,1.9vw,24px); border: 1.5px solid var(--silver); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(9px,0.85vw,11px); font-weight: 800; color: var(--slate); flex-shrink: 0; transition: all 0.15s; }
+.opt:disabled { cursor: default; }
+.opt.ok { border-color: var(--green-ok); background: rgba(39,174,96,0.06); }
+.opt.ok .opt-l { background: var(--green-ok); border-color: var(--green-ok); color: #fff; }
+.opt.no { border-color: var(--rose); background: rgba(191,63,79,0.05); }
+.opt.no .opt-l { background: var(--rose); border-color: var(--rose); color: #fff; }
+.q-fb { padding: 2.5% 3.5%; border-radius: 6px; font-size: clamp(11px,1.05vw,14px); line-height: 1.55; font-weight: 500; display: none; }
+.q-fb.show { display: block; }
+.q-fb.fb-ok { background: rgba(39,174,96,0.08); border-left: 3px solid var(--green-ok); color: #1a6e3d; }
+.q-fb.fb-no { background: rgba(191,63,79,0.07); border-left: 3px solid var(--rose); color: #5c1020; }
+
+/* ==========================================================
+   SCORE SLIDE
+   ========================================================== */
+#s-score { background: #fff; }
+.score-grid { flex: 1; display: grid; grid-template-columns: 38% 62%; padding-bottom: var(--nav-h); }
+.score-left { background: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5%; padding: 6% 5%; }
+.score-ring-wrap { position: relative; width: clamp(100px,13vw,165px); height: clamp(100px,13vw,165px); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-ring-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.score-n { font-size: clamp(32px,4.8vw,60px); font-weight: 900; color: #fff; line-height: 1; position: relative; z-index: 1; }
+.score-of { font-size: clamp(12px,1.15vw,14px); color: var(--silver); font-weight: 500; position: relative; z-index: 1; }
+.score-verdict { font-size: clamp(16px,1.8vw,24px); font-weight: 700; color: #fff; text-align: center; }
+.score-pct { font-size: clamp(12px,1.15vw,14px); color: var(--silver); text-align: center; }
+.score-right { padding: 5% 6%; display: flex; flex-direction: column; justify-content: center; gap: 4%; overflow-y: auto; }
+.score-fb-box { background: #f0f5fb; border-radius: 8px; padding: 5%; border-left: 4px solid var(--teal); }
+.score-fb-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); margin-bottom: 12px; }
+.score-fb-p { font-size: clamp(14px,1.35vw,18px); color: var(--navy); line-height: 1.65; }
+.score-acts { display: flex; flex-direction: column; gap: 10px; }
+.btn-restart { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; background: var(--rose); color: #fff; border: none; border-radius: 4px; font-family: var(--font); font-size: clamp(11px,1.05vw,13px); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.15s; align-self: flex-start; }
+.btn-restart:hover { background: var(--burgundy); }
+.btn-restart svg { width: 13px; height: 13px; stroke: #fff; }
+
+/* ==========================================================
+   CERTIFICATE
+   ========================================================== */
+#s-cert { background: #e8eef6; }
+.cert-outer { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5% 6% calc(var(--nav-h) + 10px); }
+.cert-card {
+  background: #fff; border: 2.5px solid var(--gold); border-radius: 10px;
+  padding: 4% 7%; width: 78%; position: relative;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.12);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; text-align: center;
+}
+.cert-corner { position: absolute; width: 26px; height: 26px; border-color: var(--gold-mid); border-style: solid; }
+.cert-corner.tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+.cert-corner.tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; }
+.cert-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; }
+.cert-corner.br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
+.cert-badge { width: clamp(42px,4.5vw,58px); height: clamp(42px,4.5vw,58px); background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.cert-badge svg { width: 48%; height: 48%; stroke: var(--gold-mid); }
+.cert-title-txt { font-size: clamp(20px,2.6vw,36px); font-weight: 800; color: var(--navy); }
+.cert-certify { font-size: clamp(12px,1.15vw,15px); color: var(--slate); }
+.cert-name { font-family: var(--cursive); font-size: clamp(20px,2.6vw,36px); font-style: italic; font-weight: 600; color: var(--navy-mid); border-bottom: 2px solid var(--silver); padding-bottom: 4px; min-width: 45%; }
+.cert-earned { font-size: clamp(11px,1.1vw,14px); color: var(--slate); }
+.cert-role { font-size: clamp(22px,3vw,42px); font-weight: 900; color: var(--navy); }
+.cert-desc { font-size: clamp(11px,1.05vw,14px); color: var(--slate); max-width: 78%; line-height: 1.6; }
+.cert-date { font-size: clamp(11px,1vw,13px); color: var(--slate); font-weight: 600; }
+.btn-print { padding: 7px 18px; background: var(--gold); color: var(--navy); border: none; border-radius: 4px; font-family: var(--font); font-size: clamp(11px,1.05vw,13px); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.15s; }
+.btn-print:hover { background: var(--gold-mid); }
+
+/* ==========================================================
+   KEY TAKEAWAYS
+   ========================================================== */
+#s-tk { background: #fff; }
+.tk-outer { flex: 1; display: flex; flex-direction: column; padding: 2.5% 5% calc(var(--nav-h) + 6px); gap: 1.5%; overflow: hidden; }
+.tk-head { flex-shrink: 0; }
+.tk-grid { flex: 1; display: grid; grid-template-columns: repeat(5,1fr); gap: 1.2%; overflow: hidden; min-height: 0; }
+.tk-card { display: flex; flex-direction: column; padding: 4% 4% 3%; border-radius: 8px; position: relative; overflow: hidden; }
+.tk-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 8px 8px 0 0; }
+.tk1 { background: #e8f5ff; } .tk1 .tk-bar { background: var(--teal); } .tk1 svg { stroke: var(--teal); }
+.tk2 { background: #fdf5e0; } .tk2 .tk-bar { background: var(--gold); } .tk2 svg { stroke: var(--gold); }
+.tk3 { background: #e8eef8; } .tk3 .tk-bar { background: var(--navy-mid); } .tk3 svg { stroke: var(--navy-mid); }
+.tk4 { background: #fce8eb; } .tk4 .tk-bar { background: var(--rose); } .tk4 svg { stroke: var(--rose); }
+.tk5 { background: #fdf0db; } .tk5 .tk-bar { background: var(--gold-dark); } .tk5 svg { stroke: var(--gold-dark); }
+.tk-icon { width: clamp(22px,2.4vw,32px); height: clamp(22px,2.4vw,32px); margin-top: 5%; margin-bottom: 4%; flex-shrink: 0; }
+.tk-icon svg { width: 100%; height: 100%; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.tk-t { font-size: clamp(12px,1.2vw,15px); font-weight: 700; color: var(--navy); line-height: 1.25; margin-bottom: 4%; }
+.tk-p { font-size: clamp(11px,1.1vw,14px); color: var(--slate); line-height: 1.55; }
+
+/* ==========================================================
+   CONGRATS
+   ========================================================== */
+#s-cong { background: #f4f7fa; }
+.cong-inner { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4% 12% calc(var(--nav-h) + 10px); gap: 2.5%; text-align: center; position: relative; }
+.cong-geo-tl { position: absolute; top: 0; left: 0; width: 22%; height: 32%; background: linear-gradient(135deg,rgba(81,191,252,0.07) 0%,transparent 100%); }
+.cong-geo-br { position: absolute; bottom: 0; right: 0; width: 22%; height: 32%; background: linear-gradient(315deg,rgba(206,140,0,0.07) 0%,transparent 100%); }
+.cong-icon { width: clamp(42px,5vw,65px); height: clamp(42px,5vw,65px); background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.cong-icon svg { width: 45%; height: 45%; stroke: var(--gold-mid); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.cong-cursive { font-family: var(--cursive); font-size: clamp(22px,3.4vw,48px); font-style: italic; font-weight: 600; color: var(--navy); line-height: 1.35; max-width: 75%; }
+.cong-cursive span { color: var(--teal); }
+.cong-role { font-size: clamp(18px,2.4vw,32px); font-weight: 800; color: var(--navy); }
+.cong-divider { width: 54px; height: 2px; background: linear-gradient(90deg,var(--teal),var(--gold)); border-radius: 2px; }
+.cong-body { font-size: clamp(13px,1.25vw,17px); color: var(--slate); line-height: 1.65; max-width: 68%; }
+.cong-nxt-lbl { font-size: clamp(9px,0.85vw,11px); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); }
+.cong-nxt-p { font-size: clamp(12px,1.2vw,16px); color: var(--slate); line-height: 1.6; max-width: 68%; }
+
+/* ==========================================================
+   ACCESSIBILITY
+   ========================================================== */
+.skip { position: absolute; top: -100px; left: 0; background: var(--teal); color: var(--navy); padding: 8px 16px; z-index: 9999; font-weight: 700; font-size: 14px; border-radius: 0 0 4px 0; transition: top 0.2s; }
+.skip:focus { top: 0; }
+</style>
+</head>
+<body>
+<a href="#app" class="skip">Skip to main content</a>
+<div class="stage"><div class="wrapper" id="app" role="main">
+
+<!-- ═══════════ S1: COVER ═══════════ -->
+<div class="slide active" id="s-cover" role="region" aria-label="Cover">
+  <div class="cover-grid">
+    <div class="cover-left">
+      <div class="cover-tag"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Practice Activity</div>
+      <h1 class="cover-h1">Developing an SEO Strategy<em>Using Context and Keyword Mix</em></h1>
+      <div class="cover-bar" aria-hidden="true"></div>
+      <button class="btn-begin" onclick="go(1)" aria-label="Begin activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>Begin</button>
+    </div>
+    <div class="cover-right" aria-hidden="true">
+      <div class="cover-shape1"></div><div class="cover-shape2"></div><div class="cover-dots"></div>
+      <div class="cover-deco">
+        <div class="cover-line"></div>
+        <div class="cover-ring">
+          <svg viewBox="0 0 200 200" fill="none"><circle cx="100" cy="100" r="90" stroke="rgba(81,191,252,0.12)" stroke-width="1"/><circle cx="100" cy="100" r="65" stroke="rgba(81,191,252,0.08)" stroke-width="1"/><circle cx="100" cy="100" r="40" stroke="rgba(81,191,252,0.05)" stroke-width="1"/></svg>
+          <div class="cover-ring-icon"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(81,191,252,0.45)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        </div>
+        <div class="cover-line"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ S2: LOs ═══════════ -->
+<div class="slide" id="s-los" role="region" aria-label="Learning objectives">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="los-grid">
+    <div class="los-left">
+      <div class="los-left-circle" aria-hidden="true"></div>
+      <p class="los-left-ey">What you will achieve</p>
+      <h2 class="los-left-h">Learning objectives</h2>
+      <p class="los-left-p">Welcome! In this activity, you will step into the role of a junior marketer and apply SEO strategy concepts to a real-world scenario.</p>
+    </div>
+    <div class="los-right">
+      <p class="los-right-lbl">By the end of this activity, you will be able to</p>
+      <div class="lo-card"><div class="lo-n" aria-hidden="true">01</div><div class="lo-body"><strong>Construct a foundational SEO strategy</strong><p>Use specific keywords and context principles to build a structured approach to organic visibility for a new brand.</p></div></div>
+      <div class="lo-card"><div class="lo-n" aria-hidden="true">02</div><div class="lo-body"><strong>Align content with search intent</strong><p>Match content structure and keyword type to the user's goal in a practical, real-world marketing scenario.</p></div></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(2)">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S3: NAME ═══════════ -->
+<div class="slide" id="s-name" role="region" aria-label="Enter your name">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="name-wrap">
+    <div class="name-card">
+      <div class="name-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <h2 class="name-h">Before we begin</h2>
+      <p class="name-p">Enter your full name below. It will appear on your certificate at the end of this activity.</p>
+      <div class="name-field"><label for="nm">Your full name</label><input type="text" id="nm" class="name-input" placeholder="e.g. Sarah Johnson" autocomplete="name" aria-required="true" oninput="onName(this.value)"/></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="name-next" onclick="go(3)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S4: RECAP DIVIDER ═══════════ -->
+<div class="divider" id="s-rdiv" role="region" aria-label="Review of concepts">
+  <div class="div-accent" aria-hidden="true"></div>
+  <div class="div-geo1" aria-hidden="true"></div><div class="div-geo2" aria-hidden="true"></div>
+  <div class="div-body"><h2 class="div-h">Review of concepts</h2><p class="div-p">Before you begin, revisit the key ideas you will need to answer the questions confidently.</p></div>
+  <div class="nav dark"><button class="nbtn nbtn-prev" onclick="go(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(4)">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S5: ACCORDION ═══════════ -->
+<div class="slide" id="s-recap" role="region" aria-label="Review of key concepts">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="recap-outer">
+    <div class="recap-head"><p class="eyebrow">Key concepts</p><h2 class="h2">What you need to know</h2></div>
+    <div class="recap-prog" aria-live="polite" aria-atomic="true">
+      <div class="prog-dots" aria-hidden="true"><div class="prog-dot" id="pd0"></div><div class="prog-dot" id="pd1"></div><div class="prog-dot" id="pd2"></div><div class="prog-dot" id="pd3"></div><div class="prog-dot" id="pd4"></div></div>
+      <span class="prog-txt" id="ptxt">Select each topic to review (0 of 5 reviewed)</span>
+    </div>
+    <div class="acc-list" id="acc-list">
+      <div class="acc-item" id="a0">
+        <button class="acc-btn" onclick="tacc(0)" aria-expanded="false" aria-controls="p0">
+          <span class="acc-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span>
+          Context in SEO
+          <span class="acc-reviewed" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Reviewed</span>
+          <span class="acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="acc-panel" id="p0" role="region" aria-label="Context in SEO content">
+          <p class="acc-intro">Search engines evaluate surrounding content to understand meaning, not just the keywords your page targets.</p>
+          <div class="acc-grid"><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Contextual relevance</p>
+              <ul class="acc-bullets"><li>Surrounding words signal content meaning to engines</li><li>Related terms help categorise your topic accurately</li><li>Context reduces ambiguity in search interpretation</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Semantic meaning</p>
+              <ul class="acc-bullets"><li>Related phrases build a richer picture of your topic</li><li>Synonyms and variants signal depth to search engines</li><li>Meaning matters more than exact keyword repetition</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Content quality signals</p>
+              <ul class="acc-bullets"><li>Depth, accuracy, and authority are evaluated by engines</li><li>AI search systems reward well-structured credible content</li><li>Thin content with keywords alone performs poorly</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>User query context</p>
+              <ul class="acc-bullets"><li>Location, device, and history shape query interpretation</li><li>The same keyword can surface different results by context</li><li>Understanding user context improves content targeting</li></ul>
+            </div></div>
+        </div>
+      </div>
+      <div class="acc-item" id="a1">
+        <button class="acc-btn" onclick="tacc(1)" aria-expanded="false" aria-controls="p1">
+          <span class="acc-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+          Keyword mix
+          <span class="acc-reviewed" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Reviewed</span>
+          <span class="acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="acc-panel" id="p1" role="region" aria-label="Keyword mix content">
+          <p class="acc-intro">A strong SEO strategy balances different keyword types to reach users at every stage of their search journey.</p>
+          <div class="acc-grid"><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>Head keywords</p>
+              <ul class="acc-bullets"><li>Short, broad, high-volume search terms</li><li>Highly competitive and hard to rank for early on</li><li>Build authority over time before targeting these</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Long-tail keywords</p>
+              <ul class="acc-bullets"><li>Specific multi-word phrases with lower volume</li><li>Higher intent and easier to rank for early on</li><li>Drive targeted traffic closer to a decision</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>Mid-tail keywords</p>
+              <ul class="acc-bullets"><li>Two to three word phrases balancing reach and specificity</li><li>Effective for building topical authority steadily</li><li>Good middle ground for growing brands like GreenRoots</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Intent alignment</p>
+              <ul class="acc-bullets"><li>Match keyword type to the user's specific goal</li><li>Informational, navigational, and transactional differ</li><li>Misaligned intent reduces relevance and ranking potential</li></ul>
+            </div></div>
+        </div>
+      </div>
+      <div class="acc-item" id="a2">
+        <button class="acc-btn" onclick="tacc(2)" aria-expanded="false" aria-controls="p2">
+          <span class="acc-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></span>
+          Search intent
+          <span class="acc-reviewed" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Reviewed</span>
+          <span class="acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="acc-panel" id="p2" role="region" aria-label="Search intent content">
+          <p class="acc-intro">Every search query reflects a specific user goal. Identifying and addressing that goal is central to content that ranks and converts.</p>
+          <div class="acc-grid"><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Informational intent</p>
+              <ul class="acc-bullets"><li>User wants to learn or understand something</li><li>Content should answer questions clearly and credibly</li><li>Most common intent for new audiences discovering a brand</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Navigational intent</p>
+              <ul class="acc-bullets"><li>User is looking for a specific brand or website</li><li>Brand consistency and clear naming support this intent</li><li>Requires existing brand awareness to be effective</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>Transactional intent</p>
+              <ul class="acc-bullets"><li>User is ready to buy, sign up, or take action</li><li>Content should be direct and lead to a clear next step</li><li>Trust signals and social proof are especially important</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/></svg>Commercial intent</p>
+              <ul class="acc-bullets"><li>User is comparing options before making a decision</li><li>Comparison guides and reviews serve this intent best</li><li>Sits between informational and transactional intent</li></ul>
+            </div></div>
+        </div>
+      </div>
+      <div class="acc-item" id="a3">
+        <button class="acc-btn" onclick="tacc(3)" aria-expanded="false" aria-controls="p3">
+          <span class="acc-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>
+          SEO strategy steps
+          <span class="acc-reviewed" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Reviewed</span>
+          <span class="acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="acc-panel" id="p3" role="region" aria-label="SEO strategy steps content">
+          <p class="acc-intro">An effective SEO strategy follows a structured sequence. Every decision from goal-setting to measurement should link to a clear business objective.</p>
+          <div class="acc-grid"><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Define goals and audience</p>
+              <ul class="acc-bullets"><li>Set clear organic growth objectives first</li><li>Identify who you are trying to reach and why</li><li>Goals guide every keyword and content decision</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>Conduct keyword research</p>
+              <ul class="acc-bullets"><li>Identify terms your audience actually uses</li><li>Classify keywords by intent, volume, and competition</li><li>Build a balanced mix across all keyword types</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Plan and create content</p>
+              <ul class="acc-bullets"><li>Address target keywords within their proper context</li><li>Use structure and hierarchy to signal relevance</li><li>Map each piece of content to a clear user intent</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Measure and refine</p>
+              <ul class="acc-bullets"><li>Track rankings, traffic, and engagement over time</li><li>Use data to identify what is and is not working</li><li>Adjust strategy continuously based on real results</li></ul>
+            </div></div>
+        </div>
+      </div>
+      <div class="acc-item" id="a4">
+        <button class="acc-btn" onclick="tacc(4)" aria-expanded="false" aria-controls="p4">
+          <span class="acc-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span>
+          Organic growth
+          <span class="acc-reviewed" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Reviewed</span>
+          <span class="acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="acc-panel" id="p4" role="region" aria-label="Organic growth content">
+          <p class="acc-intro">Organic growth is the result of consistent, well-aligned SEO effort. Its value compounds over time as authority and trust build.</p>
+          <div class="acc-grid"><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C12 12 8 9 8 6a4 4 0 018 0c0 3-4 6-4 6z"/></svg>Topical authority</p>
+              <ul class="acc-bullets"><li>Cover a subject comprehensively across multiple pages</li><li>Signals expertise to engines across related queries</li><li>Takes time to build but compounds in value steadily</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Compounding returns</p>
+              <ul class="acc-bullets"><li>Organic content keeps driving traffic after publication</li><li>Grows in value as domain authority increases over time</li><li>Long-term ROI consistently exceeds paid traffic</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Audience-first planning</p>
+              <ul class="acc-bullets"><li>Build strategy around genuine audience needs</li><li>Outperforms volume-first approaches over time</li><li>Earns sustained trust and repeat engagement</li></ul>
+            </div><div class="acc-pt">
+              <p class="acc-pt-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Business goal alignment</p>
+              <ul class="acc-bullets"><li>Every SEO decision should map to a business objective</li><li>Misaligned strategy wastes time and content resources</li><li>Aligned SEO contributes to measurable outcomes</li></ul>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="rnext" onclick="go(5)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S6: ACTIVITY DIVIDER ═══════════ -->
+<div class="divider" id="s-adiv" role="region" aria-label="Activity">
+  <div class="div-accent" aria-hidden="true"></div>
+  <div class="div-geo1" aria-hidden="true"></div><div class="div-geo2" aria-hidden="true"></div>
+  <div class="div-body"><h2 class="div-h">Activity</h2><p class="div-p">Time to put your knowledge into action. You have a role to play and a real challenge to solve.</p></div>
+  <div class="nav dark"><button class="nbtn nbtn-prev" onclick="go(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(6)">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S7: INSTRUCTIONS ═══════════ -->
+<div class="slide" id="s-instr" role="region" aria-label="Activity instructions">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="instr-grid">
+    <div class="instr-left">
+      <div class="instr-left-circle" aria-hidden="true"></div>
+      <p class="instr-ey">How this works</p>
+      <h2 class="instr-h">Activity instructions</h2>
+      <p class="instr-p">This is a practice activity. Your responses help you apply what you have learned, and there are no penalties for attempting again.</p>
+      <div class="score-badge" aria-label="Score 70 percent or above to earn your certificate"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score 70% or above to earn your certificate</div>
+    </div>
+    <div class="instr-right">
+      <p class="instr-right-lbl">Before you begin</p>
+      <ul class="instr-list" role="list">
+        <li><span class="instr-n" aria-hidden="true">1</span><span>Read each question carefully and consider the context before selecting your answer.</span></li>
+        <li><span class="instr-n" aria-hidden="true">2</span><span>Select the one best answer per question. Feedback explains why each option is or is not the strongest choice.</span></li>
+        <li><span class="instr-n" aria-hidden="true">3</span><span>Track your score in the top bar; it updates automatically across all six questions.</span></li>
+        <li><span class="instr-n" aria-hidden="true">4</span><span>Score 70% or above across all six questions to unlock your personalised certificate.</span></li>
+        <li><span class="instr-n" aria-hidden="true">5</span><span>Restart the activity if you score below 70%, or continue to the key takeaways to review what you learned.</span></li>
+        <li><span class="instr-n" aria-hidden="true">6</span><span>Note that this is a practice activity. It does not affect your course grade, so take your time.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(7)">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S8: SCENARIO ═══════════ -->
+<div class="slide" id="s-scen" role="region" aria-label="Activity scenario">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="scen-grid">
+    <div class="scen-left">
+      <div class="scen-left-circle" aria-hidden="true"></div>
+      <div class="scen-role"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Your role</div>
+      <div><h2 class="scen-h">Junior Digital Marketer<span>GreenRoots Co.</span></h2><p class="scen-co"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Plant-based food brand, US market</p></div>
+    </div>
+    <div class="scen-right">
+      <p class="scen-lbl">Your situation</p>
+      <p class="scen-p">GreenRoots Co. is a growing plant-based food brand based in Austin, Texas. They produce a range of ready-to-eat meals and snacks made from whole-food, plant-based ingredients, available online and in select health food stores across the US.</p>
+      <p class="scen-p">Your manager has asked you to develop their first-ever SEO strategy. GreenRoots has no previous SEO presence and wants to attract health-conscious consumers searching for plant-based alternatives to everyday meals.</p>
+      <div class="scen-task"><p class="scen-task-lbl">Your task</p><p class="scen-task-p">Answer the questions that follow to help GreenRoots build their first SEO strategy using the right keyword mix and content context. Your decisions will shape their approach to organic visibility.</p></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(8)">Begin questions<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<div class="slide q-slide" id="s-q1" role="region" aria-label="Question 1 of 6">
+  <div class="q-bar">
+    <div style="display:flex;align-items:center;gap:12px;"><span class="q-chip">Question 1 of 6</span><span class="q-scen">GreenRoots SEO strategy</span></div>
+    <div class="q-score" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score: <span class="ls">0</span> / 6</div>
+  </div>
+  <div class="q-body">
+    <div class="q-left">
+      <p class="q-lbl">Question</p>
+      <p class="q-q">GreenRoots wants to attract consumers at the very start of their plant-based journey. Which type of keyword should form the foundation of their initial content strategy?</p>
+      <div class="q-ctx"><p class="q-ctx-lbl">Context</p>GreenRoots has no SEO history. Their audience is health-conscious but may not know specific brands. Many users are just beginning to explore plant-based eating and searching in broad, general terms.</div>
+    </div>
+    <div class="q-right">
+      <p class="q-opts-lbl">Select the best answer</p>
+      <button class="opt" onclick="ans(this,'q1','A')" data-opt="A"><span class="opt-l" aria-hidden="true">A</span>High-volume head keywords like "plant-based food" that attract the most overall search traffic</button>
+<button class="opt" onclick="ans(this,'q1','B')" data-opt="B"><span class="opt-l" aria-hidden="true">B</span>Informational long-tail and mid-tail keywords matched to how beginners search for this topic</button>
+<button class="opt" onclick="ans(this,'q1','C')" data-opt="C"><span class="opt-l" aria-hidden="true">C</span>Transactional keywords with strong buy intent, targeting users who are ready to purchase now</button>
+<button class="opt" onclick="ans(this,'q1','D')" data-opt="D"><span class="opt-l" aria-hidden="true">D</span>Branded keywords focused on the GreenRoots name to drive recognition and direct searches</button>
+
+      <div class="q-fb" id="fb-q1" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(7)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="nq1" onclick="go(9)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+<div class="slide q-slide" id="s-q2" role="region" aria-label="Question 2 of 6">
+  <div class="q-bar">
+    <div style="display:flex;align-items:center;gap:12px;"><span class="q-chip">Question 2 of 6</span><span class="q-scen">GreenRoots SEO strategy</span></div>
+    <div class="q-score" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score: <span class="ls">0</span> / 6</div>
+  </div>
+  <div class="q-body">
+    <div class="q-left">
+      <p class="q-lbl">Question</p>
+      <p class="q-q">GreenRoots wants to publish their first blog post. Which approach best uses contextual SEO to establish relevance with search engines?</p>
+      <div class="q-ctx"><p class="q-ctx-lbl">Context</p>The blog targets someone searching for "easy plant-based dinner ideas." GreenRoots wants the post to rank well and feel genuinely useful to a first-time plant-based eater.</div>
+    </div>
+    <div class="q-right">
+      <p class="q-opts-lbl">Select the best answer</p>
+      <button class="opt" onclick="ans(this,'q2','A')" data-opt="A"><span class="opt-l" aria-hidden="true">A</span>Repeat the exact target keyword phrase as frequently as possible throughout the post</button>
+<button class="opt" onclick="ans(this,'q2','B')" data-opt="B"><span class="opt-l" aria-hidden="true">B</span>Use semantically related terms like meal prep, whole foods, and recipes naturally throughout the post</button>
+<button class="opt" onclick="ans(this,'q2','C')" data-opt="C"><span class="opt-l" aria-hidden="true">C</span>Build the post around product descriptions and purchase links to encourage early conversions</button>
+<button class="opt" onclick="ans(this,'q2','D')" data-opt="D"><span class="opt-l" aria-hidden="true">D</span>Cover trending food topics unrelated to plant-based eating to attract a wider readership</button>
+
+      <div class="q-fb" id="fb-q2" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(8)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="nq2" onclick="go(10)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+<div class="slide q-slide" id="s-q3" role="region" aria-label="Question 3 of 6">
+  <div class="q-bar">
+    <div style="display:flex;align-items:center;gap:12px;"><span class="q-chip">Question 3 of 6</span><span class="q-scen">GreenRoots SEO strategy</span></div>
+    <div class="q-score" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score: <span class="ls">0</span> / 6</div>
+  </div>
+  <div class="q-body">
+    <div class="q-left">
+      <p class="q-lbl">Question</p>
+      <p class="q-q">Your manager asks how GreenRoots should balance their keyword strategy over the next six months. What is the most effective approach?</p>
+      <div class="q-ctx"><p class="q-ctx-lbl">Context</p>GreenRoots has a limited content team and needs a strategy that delivers both short-term traction and sustainable long-term growth without overstretching resources.</div>
+    </div>
+    <div class="q-right">
+      <p class="q-opts-lbl">Select the best answer</p>
+      <button class="opt" onclick="ans(this,'q3','A')" data-opt="A"><span class="opt-l" aria-hidden="true">A</span>Target high-volume head keywords exclusively to build the widest possible reach as fast as possible</button>
+<button class="opt" onclick="ans(this,'q3','B')" data-opt="B"><span class="opt-l" aria-hidden="true">B</span>Target long-tail keywords only, avoiding head and mid-tail terms until authority is established</button>
+<button class="opt" onclick="ans(this,'q3','C')" data-opt="C"><span class="opt-l" aria-hidden="true">C</span>Combine long-tail for early traction, mid-tail for steady growth, and a few head keywords for authority</button>
+<button class="opt" onclick="ans(this,'q3','D')" data-opt="D"><span class="opt-l" aria-hidden="true">D</span>Copy the keyword lists of top-ranking competitors directly to replicate their organic success</button>
+
+      <div class="q-fb" id="fb-q3" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(9)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="nq3" onclick="go(11)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+<div class="slide q-slide" id="s-q4" role="region" aria-label="Question 4 of 6">
+  <div class="q-bar">
+    <div style="display:flex;align-items:center;gap:12px;"><span class="q-chip">Question 4 of 6</span><span class="q-scen">GreenRoots SEO strategy</span></div>
+    <div class="q-score" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score: <span class="ls">0</span> / 6</div>
+  </div>
+  <div class="q-body">
+    <div class="q-left">
+      <p class="q-lbl">Question</p>
+      <p class="q-q">A user searches "is a plant-based diet healthy for beginners." What type of intent does this represent, and what content should GreenRoots create?</p>
+      <div class="q-ctx"><p class="q-ctx-lbl">Context</p>This user has not mentioned buying anything. They are early in their decision journey, seeking reassurance and educational guidance before committing to a change in diet.</div>
+    </div>
+    <div class="q-right">
+      <p class="q-opts-lbl">Select the best answer</p>
+      <button class="opt" onclick="ans(this,'q4','A')" data-opt="A"><span class="opt-l" aria-hidden="true">A</span>Transactional intent: build a product page with a clear call to action and a discount offer</button>
+<button class="opt" onclick="ans(this,'q4','B')" data-opt="B"><span class="opt-l" aria-hidden="true">B</span>Navigational intent: build a homepage that highlights GreenRoots brand values and story</button>
+<button class="opt" onclick="ans(this,'q4','C')" data-opt="C"><span class="opt-l" aria-hidden="true">C</span>Informational intent: build an educational blog post answering health questions with helpful links</button>
+<button class="opt" onclick="ans(this,'q4','D')" data-opt="D"><span class="opt-l" aria-hidden="true">D</span>Commercial intent: build a comparison guide that positions GreenRoots against competitor brands</button>
+
+      <div class="q-fb" id="fb-q4" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(10)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="nq4" onclick="go(12)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+<div class="slide q-slide" id="s-q5" role="region" aria-label="Question 5 of 6">
+  <div class="q-bar">
+    <div style="display:flex;align-items:center;gap:12px;"><span class="q-chip">Question 5 of 6</span><span class="q-scen">GreenRoots SEO strategy</span></div>
+    <div class="q-score" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score: <span class="ls">0</span> / 6</div>
+  </div>
+  <div class="q-body">
+    <div class="q-left">
+      <p class="q-lbl">Question</p>
+      <p class="q-q">GreenRoots wants to build topical authority in the plant-based food space. Which content structure best supports this goal?</p>
+      <div class="q-ctx"><p class="q-ctx-lbl">Context</p>GreenRoots has a blog and product section. Their team can publish two to four pieces of content per month and wants search engines to recognise them as a credible source on plant-based nutrition.</div>
+    </div>
+    <div class="q-right">
+      <p class="q-opts-lbl">Select the best answer</p>
+      <button class="opt" onclick="ans(this,'q5','A')" data-opt="A"><span class="opt-l" aria-hidden="true">A</span>Publish standalone blog posts on trending food topics with no structural link between them</button>
+<button class="opt" onclick="ans(this,'q5','B')" data-opt="B"><span class="opt-l" aria-hidden="true">B</span>Build a pillar page on plant-based eating supported by cluster content on subtopics, all internally linked</button>
+<button class="opt" onclick="ans(this,'q5','C')" data-opt="C"><span class="opt-l" aria-hidden="true">C</span>Publish product pages targeting transactional keywords, focusing effort on direct revenue content</button>
+<button class="opt" onclick="ans(this,'q5','D')" data-opt="D"><span class="opt-l" aria-hidden="true">D</span>Shift the content budget to social media platforms where engagement metrics are easier to measure</button>
+
+      <div class="q-fb" id="fb-q5" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(11)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="nq5" onclick="go(13)" disabled aria-disabled="true">Next<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+<div class="slide q-slide" id="s-q6" role="region" aria-label="Question 6 of 6">
+  <div class="q-bar">
+    <div style="display:flex;align-items:center;gap:12px;"><span class="q-chip">Question 6 of 6</span><span class="q-scen">GreenRoots SEO strategy</span></div>
+    <div class="q-score" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Score: <span class="ls">0</span> / 6</div>
+  </div>
+  <div class="q-body">
+    <div class="q-left">
+      <p class="q-lbl">Question</p>
+      <p class="q-q">After three months, GreenRoots notices their blog traffic is not growing as expected. What is the most strategic next step?</p>
+      <div class="q-ctx"><p class="q-ctx-lbl">Context</p>Some posts are performing well while others are not ranking. GreenRoots has not yet reviewed analytics in detail. The manager wants a plan to improve results without starting from scratch.</div>
+    </div>
+    <div class="q-right">
+      <p class="q-opts-lbl">Select the best answer</p>
+      <button class="opt" onclick="ans(this,'q6','A')" data-opt="A"><span class="opt-l" aria-hidden="true">A</span>Remove all underperforming posts and rebuild the blog with an entirely new set of topics</button>
+<button class="opt" onclick="ans(this,'q6','B')" data-opt="B"><span class="opt-l" aria-hidden="true">B</span>Publish more content immediately, increasing frequency without reviewing what has been posted</button>
+<button class="opt" onclick="ans(this,'q6','C')" data-opt="C"><span class="opt-l" aria-hidden="true">C</span>Review performance data to see what is working, then refine keywords, context, and internal linking</button>
+<button class="opt" onclick="ans(this,'q6','D')" data-opt="D"><span class="opt-l" aria-hidden="true">D</span>Move the budget to paid advertising, since organic SEO has not delivered measurable results yet</button>
+
+      <div class="q-fb" id="fb-q6" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(12)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" id="nq6" onclick="submit()" disabled aria-disabled="true">Submit<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+<!-- ═══════════ S14: SCORE ═══════════ -->
+<div class="slide" id="s-score" role="region" aria-label="Your score">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="score-grid">
+    <div class="score-left">
+      <div class="score-ring-wrap" aria-label="Score indicator">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="var(--teal)" stroke-width="7" stroke-dasharray="276.46" id="sring" stroke-dashoffset="276.46" stroke-linecap="round"/>
+        </svg>
+        <div class="score-n" id="snum" aria-live="polite">0</div>
+        <div class="score-of">out of 6</div>
+      </div>
+      <div class="score-verdict" id="sverdict">Calculating...</div>
+      <div class="score-pct" id="spct"></div>
+    </div>
+    <div class="score-right">
+      <div class="score-fb-box"><div class="score-fb-lbl">Your feedback</div><p class="score-fb-p" id="sfb"></p></div>
+      <div class="score-acts" id="sacts"></div>
+    </div>
+  </div>
+  <div class="nav"><div></div><button class="nbtn nbtn-next" id="sfwd" onclick="sfwd()">Continue<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S15: CERTIFICATE ═══════════ -->
+<div class="slide" id="s-cert" role="region" aria-label="Certificate of achievement">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="cert-outer">
+    <div class="cert-card">
+      <div class="cert-corner tl" aria-hidden="true"></div><div class="cert-corner tr" aria-hidden="true"></div>
+      <div class="cert-corner bl" aria-hidden="true"></div><div class="cert-corner br" aria-hidden="true"></div>
+      <div class="cert-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+      <h2 class="cert-title-txt">Certificate of Achievement</h2>
+      <p class="cert-certify">This is to certify that</p>
+      <p class="cert-name" id="cname">Your Name</p>
+      <p class="cert-earned">has earned the title of</p>
+      <p class="cert-role">SEO Strategy Builder</p>
+      <p class="cert-desc">for successfully developing a foundational SEO strategy using context principles and keyword mix in a real-world marketing scenario.</p>
+      <p class="cert-date" id="cdate"></p>
+      <button class="btn-print" onclick="window.print()">Print certificate</button>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(14)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(16)">Key takeaways<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S16: TAKEAWAYS ═══════════ -->
+<div class="slide" id="s-tk" role="region" aria-label="Key takeaways">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="tk-outer">
+    <div class="tk-head"><p class="eyebrow">What you have learned</p><h2 class="h2">Key takeaways</h2></div>
+    <div class="tk-grid" role="list">
+      <div class="tk-card tk1" role="listitem"><div class="tk-bar" aria-hidden="true"></div><div class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><h3 class="tk-t">Context is as powerful as keywords</h3><p class="tk-p">Search engines use surrounding content to determine meaning. Semantic relevance and contextual signals matter as much as the target keyword itself.</p></div>
+      <div class="tk-card tk2" role="listitem"><div class="tk-bar" aria-hidden="true"></div><div class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><h3 class="tk-t">A balanced keyword mix drives sustainable growth</h3><p class="tk-p">Combining head, mid-tail, and long-tail keywords ensures visibility at every stage of the search journey, from awareness through to conversion.</p></div>
+      <div class="tk-card tk3" role="listitem"><div class="tk-bar" aria-hidden="true"></div><div class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div><h3 class="tk-t">Search intent shapes content decisions</h3><p class="tk-p">Matching content type to the user's intent, whether informational, commercial, or transactional, is central to building an effective SEO strategy.</p></div>
+      <div class="tk-card tk4" role="listitem"><div class="tk-bar" aria-hidden="true"></div><div class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><h3 class="tk-t">Structure builds topical authority</h3><p class="tk-p">Organising content into pillar pages and supporting clusters signals comprehensive expertise to search engines and strengthens overall rankings.</p></div>
+      <div class="tk-card tk5" role="listitem"><div class="tk-bar" aria-hidden="true"></div><div class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><h3 class="tk-t">Data-driven refinement sustains performance</h3><p class="tk-p">Iterating on underperforming content based on analytics is more effective than starting over. SEO rewards consistency and evidence-based decisions.</p></div>
+    </div>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" id="tkprev" onclick="go(15)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button><button class="nbtn nbtn-next" onclick="go(17)">Wrap up<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+</div>
+
+<!-- ═══════════ S17: CONGRATS ═══════════ -->
+<div class="slide" id="s-cong" role="region" aria-label="Congratulations">
+  <div class="strip" aria-hidden="true"></div>
+  <div class="cong-inner">
+    <div class="cong-geo-tl" aria-hidden="true"></div><div class="cong-geo-br" aria-hidden="true"></div>
+    <div class="cong-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+    <p class="cong-cursive">You did it, <span id="congname">Learner</span>.</p>
+    <p class="cong-role">SEO Strategy Builder</p>
+    <div class="cong-divider" aria-hidden="true"></div>
+    <p class="cong-body">You have completed the SEO strategy activity and demonstrated your understanding of context, keyword mix, and search intent through a real-world marketing challenge.</p>
+    <p class="cong-nxt-lbl">Next step</p>
+    <p class="cong-nxt-p">Continue building your SEO and GEO knowledge in the lessons ahead. The skills you practised here will carry through everything that follows in this course.</p>
+  </div>
+  <div class="nav"><button class="nbtn nbtn-prev" onclick="go(16)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Prev</button></div>
+</div>
+
+<script>
+// ── SLIDE IDS (in order) ──
+const SL=['s-cover','s-los','s-name','s-rdiv','s-recap','s-adiv','s-instr','s-scen',
+          's-q1','s-q2','s-q3','s-q4','s-q5','s-q6','s-score','s-cert','s-tk','s-cong'];
+let cur=0, lname='', score=0, answered={}, visited=new Set(), certEarned=false, openAcc=-1;
+const PASS=0.70, TOTAL=5;
+
+const FB={q1:{correct:'B',fb:{'A':'Head keywords place a new brand in direct competition with well-established sites. Without existing domain authority, GreenRoots is unlikely to rank for these terms in any meaningful timeframe.','B':'Informational long-tail and mid-tail keywords match where this audience is in their journey. They carry lower competition, reflect genuine beginner questions, and allow GreenRoots to build early traction.','C':'Transactional keywords assume the user is ready to buy. GreenRoots\'s audience is still exploring, so targeting purchase intent this early misses most people who could eventually become customers.','D':'Branded keywords only help if people already know GreenRoots exists. Since the brand has no awareness yet, branded searches generate almost no volume and do nothing to attract new audiences.',}},q2:{correct:'B',fb:{'A':'Repeating a keyword phrase excessively is keyword stuffing. Search engines penalise this practice, and readers find it unnatural. It does not build contextual depth.','B':'Using semantically related terms builds contextual richness around the main topic. Search engines recognise the cluster of related language, signalling that the content genuinely addresses the subject.','C':'A post targeting informational intent should educate first, not sell. Leading with product descriptions signals a mismatch between content and user goal, increasing bounce rates.','D':'Covering unrelated trending topics dilutes topical authority and confuses search engines about what GreenRoots\'s site is actually about. Relevance and consistency build organic trust over time.',}},q3:{correct:'C',fb:{'A':'Targeting only head keywords puts a new brand in direct competition with well-established sites. Without existing authority, GreenRoots is unlikely to rank for these terms.','B':'A strategy limited to long-tail keywords misses mid-tier opportunities that build broader topical authority. Over-specialisation limits the ceiling of organic growth.','C':'A balanced keyword mix lets GreenRoots win with long-tail terms, grow steadily through mid-tail, and gradually challenge broader topics as authority increases. The most sustainable approach.','D':'Copying competitors\' keyword lists ignores context. Their strategy reflects their audience, authority level, and history. GreenRoots needs a strategy built around their own goals.',}},q4:{correct:'C',fb:{'A':'A query asking whether something is healthy reflects curiosity, not purchase intent. A product page with a discount sends the user to the wrong content and is unlikely to rank or convert.','B':'Navigational intent is when someone looks for a specific brand. This query does not name a brand, so a homepage would not address the health question the user is actually asking.','C':'This is an informational query. The user wants education and reassurance. A well-structured blog post that answers their question and links naturally to GreenRoots content matches their intent.','D':'Commercial intent applies when a user is comparing options before buying. This query is a foundational health question that sits much earlier in the decision journey.',}},q5:{correct:'B',fb:{'A':'Publishing disconnected posts on random topics does not signal expertise to search engines. Without coherent structure, it is difficult to build authority and internal linking opportunities are wasted.','B':'A pillar and cluster model demonstrates comprehensive topic coverage. The pillar covers the subject broadly while cluster content addresses specific subtopics. Internal links signal topical depth.','C':'Focusing only on transactional pages misses the majority of the audience who are still learning. It also limits the range of keywords GreenRoots can target and reduces visibility in informational searches.','D':'Social media content does not directly improve search engine rankings. While it supports brand awareness, it cannot replace the topical authority that well-structured website content builds over time.',}},q6:{correct:'C',fb:{'A':'Deleting posts removes existing ranking signals and accumulated value. Even underperforming content may hold some authority that can be improved. Deleting without analysis means starting from zero.','B':'Publishing more content without understanding why existing content underperforms risks repeating the same mistakes at higher volume. More output is not better when the strategy needs refinement.','C':'Data-driven refinement is the most strategic response. Identifying what gains traction, then updating keyword targeting, improving context, and strengthening internal links can revive underperforming content.','D':'Switching to paid advertising does not solve the underlying SEO issue and introduces ongoing costs. Organic SEO builds compounding returns over time. Three months is too early to give up.',}},};
+
+function go(i){
+  if(i<0||i>=SL.length)return;
+  document.querySelectorAll('.slide,.divider').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  const el=document.getElementById(SL[i]);
+  if(!el)return;
+  el.style.display='flex';
+  requestAnimationFrame(()=>el.classList.add('active'));
+  el.setAttribute('tabindex','-1');
+  el.focus({preventScroll:true});
+  cur=i; refreshScores();
+}
+
+function onName(v){
+  lname=v.trim();
+  document.getElementById('cname').textContent=lname||'Your Name';
+  document.getElementById('congname').textContent=lname||'Learner';
+  const b=document.getElementById('name-next');
+  if(lname.length>0){b.disabled=false;b.removeAttribute('aria-disabled');}
+  else{b.disabled=true;b.setAttribute('aria-disabled','true');}
+}
+
+// ── ACCORDION ──
+function tacc(i){
+  const item=document.getElementById('a'+i);
+  const btn=item.querySelector('.acc-btn');
+  const panel=document.getElementById('p'+i);
+  if(openAcc===i){
+    item.classList.remove('open');
+    btn.setAttribute('aria-expanded','false');
+    panel.style.display='none';
+    openAcc=-1; return;
+  }
+  if(openAcc>=0){
+    const prev=document.getElementById('a'+openAcc);
+    prev.classList.remove('open');
+    prev.querySelector('.acc-btn').setAttribute('aria-expanded','false');
+    document.getElementById('p'+openAcc).style.display='none';
+  }
+  item.classList.add('open');
+  btn.setAttribute('aria-expanded','true');
+  panel.style.display='flex';
+  openAcc=i;
+  if(!visited.has(i)){
+    visited.add(i);
+    item.classList.add('visited');
+    updateProg();
+  }
+}
+
+function updateProg(){
+  const n=visited.size;
+  for(let i=0;i<TOTAL;i++){
+    if(visited.has(i))document.getElementById('pd'+i).classList.add('done');
+  }
+  document.getElementById('ptxt').textContent=n>=TOTAL?'All topics reviewed. You can continue.':
+    `Select each topic to review (${n} of ${TOTAL} reviewed)`;
+  if(n>=TOTAL){const b=document.getElementById('rnext');b.disabled=false;b.removeAttribute('aria-disabled');}
+}
+
+// ── QUESTIONS ──
+function ans(btn,qk,opt){
+  if(answered[qk])return;
+  answered[qk]=opt;
+  const correct=FB[qk].correct, isOk=(opt===correct);
+  if(isOk)score++;
+  btn.closest('.q-right').querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true;b.setAttribute('aria-disabled','true');
+    const o=b.getAttribute('data-opt');
+    if(o===correct)b.classList.add('ok');
+    else if(o===opt&&!isOk)b.classList.add('no');
+  });
+  const fb=document.getElementById('fb-'+qk);
+  fb.textContent=FB[qk].fb[opt];
+  fb.classList.add('show',isOk?'fb-ok':'fb-no');
+  const nb=document.getElementById('n'+qk);
+  if(nb){nb.disabled=false;nb.removeAttribute('aria-disabled');}
+  refreshScores();
+}
+
+function refreshScores(){
+  document.querySelectorAll('.ls').forEach(el=>el.textContent=score);
+}
+
+// ── SUBMIT ──
+function submit(){
+  const pct=score/6; certEarned=pct>=PASS;
+  const ds=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('cdate').textContent=ds;
+  document.getElementById('snum').textContent=score;
+  const pi=Math.round(pct*100);
+  document.getElementById('spct').textContent=pi+'% score';
+  setTimeout(()=>{
+    const r=document.getElementById('sring');
+    r.style.transition='stroke-dashoffset 1s ease';
+    r.style.strokeDashoffset=276.46-(276.46*pct);
+    r.style.stroke=pct>=PASS?'var(--green-ok)':pct>=0.4?'var(--gold-mid)':'var(--rose)';
+  },200);
+  let verd,fb;
+  if(pct>=PASS){verd='Well done!';fb=`You scored ${score} out of 6 and demonstrated a solid understanding of SEO strategy, keyword mix, and search intent. Your certificate is ready. Select View certificate to collect it.`;}
+  else if(pct>=0.4){verd='Good effort!';fb=`You scored ${score} out of 6. You have a good grasp of the core ideas but some areas need strengthening. Review the concepts and try again, or continue to the key takeaways.`;}
+  else{verd='Keep practising';fb=`You scored ${score} out of 6. Revisit the key concepts in the review section and restart when you are ready. You can also continue to the key takeaways.`;}
+  document.getElementById('sverdict').textContent=verd;
+  document.getElementById('sfb').textContent=fb;
+  const acts=document.getElementById('sacts'); acts.innerHTML='';
+  if(!certEarned){
+    const rb=document.createElement('button');
+    rb.className='btn-restart';
+    rb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Restart activity';
+    rb.onclick=restart; acts.appendChild(rb);
+  }
+  const fw=document.getElementById('sfwd');
+  fw.innerHTML=(certEarned?'View certificate':'Key takeaways')+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>';
+  document.getElementById('tkprev').onclick=certEarned?()=>go(15):()=>go(14);
+  go(14);
+}
+
+function sfwd(){go(certEarned?15:16);}
+
+function restart(){
+  score=0;answered={};visited=new Set();certEarned=false;openAcc=-1;
+  for(let i=0;i<TOTAL;i++){
+    const it=document.getElementById('a'+i);
+    it.classList.remove('open','visited');
+    it.querySelector('.acc-btn').setAttribute('aria-expanded','false');
+    document.getElementById('p'+i).style.display='none';
+    document.getElementById('pd'+i).classList.remove('done');
+  }
+  document.getElementById('ptxt').textContent='Select each topic to review (0 of 5 reviewed)';
+  const rn=document.getElementById('rnext');rn.disabled=true;rn.setAttribute('aria-disabled','true');
+  for(let i=1;i<=6;i++){
+    const qs=document.getElementById('s-q'+i);
+    qs.querySelectorAll('.opt').forEach(b=>{b.disabled=false;b.removeAttribute('aria-disabled');b.classList.remove('ok','no');});
+    const fb=document.getElementById('fb-q'+i);if(fb){fb.classList.remove('show','fb-ok','fb-no');fb.textContent='';}
+    const nb=document.getElementById('nq'+i);if(nb){nb.disabled=true;nb.setAttribute('aria-disabled','true');}
+  }
+  refreshScores();go(4);
+}
+
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA'].includes(e.target.tagName))return;
+  if(e.key==='ArrowRight'){const b=document.querySelector('.slide.active .nbtn-next,.divider.active .nbtn-next');if(b&&!b.disabled)b.click();}
+  if(e.key==='ArrowLeft'){const b=document.querySelector('.slide.active .nbtn-prev,.divider.active .nbtn-prev');if(b)b.click();}
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('cdate').textContent=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  go(0);
+});
+</script>
+</div></div>
+</body>
+</html>
